@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opennms
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: opennms
+  template:
+    metadata:
+      labels:
+        app: opennms
+    spec:
+      containers:
+        - name: opennms
+          # Pin to a specific tested tag rather than "latest" for reproducibility.
+          # Check available tags at: https://hub.docker.com/r/opennms/horizon/tags
+          image: opennms/horizon:32.0.6
+          args: ["-s"] # starts OpenNMS properly
+          envFrom:
+            - secretRef:
+                name: postgres-credentials
+          env:
+            - name: POSTGRES_HOST
+              value: postgres
+            - name: POSTGRES_PORT
+              value: "5432"
+            - name: OPENNMS_DBNAME
+              value: opennms
+          ports:
+            - containerPort: 8980
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          readinessProbe:
+            httpGet:
+              path: /opennms/login.jsp
+              port: 8980
+            initialDelaySeconds: 60
+            periodSeconds: 20
+          livenessProbe:
+            httpGet:
+              path: /opennms/login.jsp
+              port: 8980
+            initialDelaySeconds: 90
+            periodSeconds: 30
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opennms
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: opennms
+  ports:
+    - port: 8980
