@@ -20,7 +20,7 @@ done
 sudo apt-get update
 sudo apt-get install ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
 # Add the Docker repository
@@ -45,7 +45,7 @@ sudo docker run hello-world   # smoke test
 
 ```bash
 sudo apt update -y && sudo apt upgrade -y
-sudo apt install -y curl conntrack
+sudo apt install -y conntrack
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
 minikube version
@@ -57,12 +57,12 @@ minikube version
 # Method 1 (preferred)
 sudo snap install kubectl --classic
 
-# Method 2 (if snap install fails) - download in Windows, then move into WSL
+# Method 2 (if snap install fails) - download the kubectl binary directly
 # Download from: https://dl.k8s.io/release/<version>/bin/linux/amd64/kubectl
-cd <path_to_downloaded_kubectl>   # e.g. /mnt/c/Users/<you>/Downloads
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 chmod +x kubectl
-sudo mv kubectl /snap/bin
-export PATH=$PATH:/snap/bin       # if /snap/bin isn't already on PATH
+sudo mv kubectl /usr/local/bin
+
 
 kubectl version --client
 ```
