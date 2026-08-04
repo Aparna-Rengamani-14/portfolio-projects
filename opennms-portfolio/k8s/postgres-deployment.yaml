@@ -23,6 +23,7 @@ spec:
       labels:
         app: postgres
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: postgres
           # Pinned to a specific tested tag instead of a moving "latest" tag,
@@ -33,26 +34,33 @@ spec:
           envFrom:
             - secretRef:
                 name: postgres-credentials
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           resources:
             requests:
-              cpu: "100m"
-              memory: "256Mi"
-            limits:
               cpu: "250m"
               memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgres-storage
           readinessProbe:
             exec:
-              command: ["pg_isready", "-U", "opennms"]
+              command: ["pg_isready", "-U", "opennms", "-d", "opennms"]
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
           livenessProbe:
             exec:
-              command: ["pg_isready", "-U", "opennms"]
-            initialDelaySeconds: 20
+              command: ["pg_isready", "-U", "opennms", "-d", "opennms"]
+            initialDelaySeconds: 30
             periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
       volumes:
         - name: postgres-storage
           persistentVolumeClaim:

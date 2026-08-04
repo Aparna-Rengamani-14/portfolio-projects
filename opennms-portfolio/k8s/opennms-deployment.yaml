@@ -34,22 +34,31 @@ spec:
           resources:
             requests:
               cpu: "500m"
-              memory: "1Gi"
+              memory: "1.5Gi"
             limits:
-              cpu: "1"
-              memory: "2Gi"
+              cpu: "2"
+              memory: "3.5Gi"
+          startupProbe:
+            httpGet:
+              path: /opennms/login.jsp
+              port: 8980
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 90   # 30s + (90 x 10s) = ~15.5 minutes to boot
           readinessProbe:
             httpGet:
               path: /opennms/login.jsp
               port: 8980
-            initialDelaySeconds: 60
             periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
           livenessProbe:
             httpGet:
               path: /opennms/login.jsp
               port: 8980
-            initialDelaySeconds: 90
             periodSeconds: 30
+            timeoutSeconds: 5
             failureThreshold: 3
 ---
 apiVersion: v1
